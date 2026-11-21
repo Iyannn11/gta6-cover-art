@@ -1,36 +1,31 @@
-// Vice Cover Studio — the program that hands the app in (Node 22, standard
-// library only). It copies this repository's app/ and screenshots/ into the
-// output directory and writes output/dossier.json with the make.fun library
-// (vendor/makefun-app.ts, the kit's copy, unchanged). The grader runs this
-// program twice in a fresh container with no network and requires both runs
-// to write the same bytes; MAKEFUN_OUTPUT_DIR stands in for /output outside
-// the grader, so locally:  mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// Vice Cover Lab — hand-in program for make.fun (gta6-cover-art-01).
+// Copies app/ and screenshots/ into the output directory and writes the
+// dossier with the kit's buildDossier. Node 22 standard library only, so it
+// runs twice with byte-identical output and no install step.
 
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-app.ts';
 
-const repoRoot = fileURLToPath(new URL('.', import.meta.url));
-const outputDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const repoRoot = dirname(fileURLToPath(import.meta.url));
+const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-mkdirSync(outputDir, { recursive: true });
-cpSync(join(repoRoot, 'app'), join(outputDir, 'app'), { recursive: true });
-mkdirSync(join(outputDir, 'screenshots'), { recursive: true });
-if (existsSync(join(repoRoot, 'screenshots'))) {
-  cpSync(join(repoRoot, 'screenshots'), join(outputDir, 'screenshots'), { recursive: true });
-}
+// Start from a clean output directory so a rerun cannot leave stale files.
+rmSync(outDir, { recursive: true, force: true });
+mkdirSync(outDir, { recursive: true });
 
-// The gate's own caps, so a build that passes here passes the scorer: at most
-// 4 screenshots of 256 KiB, app/ at most 993 files and 48 MiB, and the dossier
-// text capped at 160 KiB.
-writeFileSync(
-  join(outputDir, 'dossier.json'),
-  buildDossier(outputDir, {
-    text_max_bytes: 163840,
-    screenshots: { max: 4, max_bytes: 262144 },
-    app_max_files: 993,
-    app_max_bytes: 50331648,
-    app_path_max_bytes: 1000,
-  }),
-);
+// Hand in the app and its screenshots exactly as they sit in the repo.
+cpSync(join(repoRoot, 'app'), join(outDir, 'app'), { recursive: true });
+cpSync(join(repoRoot, 'screenshots'), join(outDir, 'screenshots'), { recursive: true });
+
+// The dossier the scorer rebuilds and compares byte for byte.
+const dossier = buildDossier(outDir, {
+  text_max_bytes: 163840,
+  screenshots: { max: 4, max_bytes: 262144 },
+  app_max_files: 993,
+  app_max_bytes: 50331648,
+});
+writeFileSync(join(outDir, 'dossier.json'), dossier);
+
+console.log(`vice-cover-lab: wrote ${outDir} (${dossier.length} byte dossier)`);
