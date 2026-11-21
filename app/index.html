@@ -3,97 +3,123 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Cover Lab — GTA 6-style Cover Art Maker</title>
+<title>Vice Cover Lab — GTA 6-style cover art maker</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="topbar">
   <div class="brand">
-    <span class="brand-mark">★</span>
+    <span class="brand-mark">VCL</span>
     <div>
-      <h1>VICE COVER LAB</h1>
-      <p>GTA 6-style cover art maker — photo + caption → poster PNG. Works fully offline.</p>
+      <h1>Vice Cover Lab</h1>
+      <p>Photo + caption &rarr; GTA 6-style cover art. Works fully offline.</p>
     </div>
   </div>
-  <div class="seed" id="seedLabel">seed #7</div>
+  <div class="top-actions">
+    <button id="randomizeBtn" class="btn btn-glow" type="button" title="New deterministic random cover (seeded)">&#x1F3B2; Randomize</button>
+    <span class="seed-chip" title="Deterministic seed: same seed, same cover">seed <strong id="seedLabel">7</strong></span>
+  </div>
 </header>
 
-<section class="presets" aria-label="Looks">
-  <span class="section-label">One-click looks</span>
-  <div id="presetRow" class="preset-row"></div>
-  <button type="button" id="randomBtn" class="random">🎲 Randomize look</button>
-</section>
-
 <main class="workspace">
-  <section class="stage">
-    <div class="canvas-wrap">
-      <canvas id="preview" width="900" height="900" aria-label="Cover preview"></canvas>
+  <section class="stage-col">
+    <div class="stage-toolbar">
+      <span id="layoutName" class="stage-label">Hero split</span>
+      <span class="hint">Click a panel to select it &middot; drag to pan &middot; scroll to zoom</span>
     </div>
-    <div class="aspect-row" role="group" aria-label="Poster size">
-      <span class="section-label">Preview size</span>
-      <button type="button" class="chip" data-aspect="square">Square 1:1</button>
-      <button type="button" class="chip" data-aspect="portrait">Portrait 4:5</button>
-      <button type="button" class="chip" data-aspect="wide">Wide 16:9</button>
+    <div class="stage-wrap">
+      <canvas id="coverCanvas" width="1080" height="1080" aria-label="Cover preview"></canvas>
+      <div id="panelBadge" class="panel-badge">Panel 1</div>
     </div>
-    <div class="export-row" role="group" aria-label="Export PNG">
-      <span class="section-label">Export PNG</span>
-      <button type="button" class="export" data-export="1080x1080">1080 × 1080</button>
-      <button type="button" class="export" data-export="1080x1350">1080 × 1350</button>
-      <button type="button" class="export" data-export="1920x1080">1920 × 1080</button>
+    <div class="export-row">
+      <span class="row-label">Export PNG</span>
+      <button class="btn export-btn" data-export="square" type="button">1080 &times; 1080</button>
+      <button class="btn export-btn" data-export="portrait" type="button">1080 &times; 1350</button>
+      <button class="btn export-btn" data-export="wide" type="button">1920 &times; 1080</button>
+      <span id="exportStatus" class="export-status" role="status"></span>
     </div>
-    <p id="exportNote" class="hint">Drag a panel to pan it · scroll over a panel to zoom · click a panel to select it.</p>
   </section>
 
   <aside class="controls">
-    <section class="card">
-      <h2>1 · Photos</h2>
-      <div id="sampleThumbs" class="thumbs"></div>
-      <label class="upload" for="uploadInput">＋ Upload your own photo</label>
-      <input type="file" id="uploadInput" accept="image/*" hidden>
-      <p class="hint">Photos stay on your machine — nothing is uploaded.</p>
-    </section>
-
-    <section class="card">
-      <h2>2 · Layout</h2>
-      <div id="layoutRow" class="chip-row"></div>
-    </section>
-
-    <section class="card">
-      <h2>3 · Colour grade</h2>
-      <div id="gradeRow" class="chip-row"></div>
-      <label class="check"><input type="checkbox" id="grainToggle" checked> Film grain</label>
-      <label class="check"><input type="checkbox" id="vignetteToggle" checked> Vignette</label>
-    </section>
-
-    <section class="card">
-      <h2>4 · Caption &amp; masthead</h2>
-      <label class="field">Caption
-        <input type="text" id="captionInput" value="SUNSET HEIST" maxlength="40">
+    <section class="panel">
+      <h2>1 &middot; Layout</h2>
+      <div id="layoutGrid" class="chip-grid"></div>
+      <label class="field">Panels in use
+        <span id="panelCountLabel" class="field-value">3 panels</span>
       </label>
-      <div class="chip-row" role="group" aria-label="Caption position">
-        <button type="button" class="chip" data-pos="top">Top</button>
-        <button type="button" class="chip" data-pos="middle">Middle</button>
-        <button type="button" class="chip" data-pos="bottom">Bottom</button>
-        <button type="button" class="chip" data-pos="off">Off</button>
+    </section>
+
+    <section class="panel">
+      <h2>2 &middot; Photo per panel</h2>
+      <div class="photo-row">
+        <button class="btn photo-btn" data-photo="samples/boulevard.jpg" type="button">Boulevard</button>
+        <button class="btn photo-btn" data-photo="samples/pier.jpg" type="button">Pier</button>
+        <label class="btn photo-btn upload-btn" for="uploadInput">Upload photo&hellip;
+          <input id="uploadInput" type="file" accept="image/*" hidden>
+        </label>
       </div>
-      <label class="check"><input type="checkbox" id="mastheadToggle" checked> Show masthead</label>
-      <label class="field">Masthead text
-        <input type="text" id="mastheadInput" value="LEONIDA" maxlength="20">
+      <label class="field">Selected panel photo
+        <span id="panelPhotoLabel" class="field-value">samples/boulevard.jpg</span>
       </label>
+      <label class="field">Panel grade override
+        <select id="panelGradeSelect">
+          <option value="">Use cover grade</option>
+        </select>
+      </label>
+      <label class="field">Zoom <span id="zoomLabel" class="field-value">1.00&times;</span>
+        <input id="zoomRange" type="range" min="1" max="3" step="0.01" value="1">
+      </label>
+      <button id="resetPanelBtn" class="btn btn-small" type="button">Reset pan &amp; zoom</button>
     </section>
 
-    <section class="card">
-      <h2>5 · Panels</h2>
-      <p class="hint">Click a panel on the poster to select it, then set its photo, grade and zoom here.</p>
-      <div id="panelList"></div>
+    <section class="panel">
+      <h2>3 &middot; Colour grade</h2>
+      <div id="gradeGrid" class="chip-grid"></div>
+      <p class="note">Neon-sunset colour science: warm magenta-orange sky wash,
+        teal-shadow / orange-highlight split tone, highlight bloom.</p>
+    </section>
+
+    <section class="panel">
+      <h2>4 &middot; Caption &amp; masthead</h2>
+      <label class="field">Caption
+        <input id="captionInput" type="text" value="VICE CITY" maxlength="24">
+      </label>
+      <label class="field">Sub-caption
+        <input id="subInput" type="text" value="LEONIDA &middot; 2026" maxlength="40">
+      </label>
+      <label class="field">Caption position
+        <select id="captionPosSelect">
+          <option value="top">Top</option>
+          <option value="middle">Middle</option>
+          <option value="bottom" selected>Bottom</option>
+        </select>
+      </label>
+      <label class="field">Caption size <span id="captionSizeLabel" class="field-value">100%</span>
+        <input id="captionSizeRange" type="range" min="0.6" max="1.4" step="0.05" value="1">
+      </label>
+      <div class="toggle-row">
+        <label class="toggle"><input id="mastheadCheck" type="checkbox" checked> LEONIDA masthead</label>
+        <label class="toggle"><input id="coverLinesCheck" type="checkbox" checked> Magazine cover lines</label>
+      </div>
+      <div class="toggle-row">
+        <label class="toggle"><input id="grainCheck" type="checkbox" checked> Film grain</label>
+        <label class="toggle"><input id="vignetteCheck" type="checkbox" checked> Vignette</label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Presets</h2>
+      <div id="presetGrid" class="chip-grid"></div>
+      <p class="note">Presets are one tap: layout, grade, caption and masthead together.</p>
     </section>
   </aside>
 </main>
 
 <footer class="foot">
-  Vice Cover Lab — an original cover maker. No Rockstar Games logo, artwork or font is used.
+  <span>Original art &mdash; no Rockstar logos, artwork or fonts. Photos stay on your machine; nothing is uploaded.</span>
 </footer>
 
-<script type="module" src="src/main.js"></script>
+<script src="src/cover.js"></script>
+<script src="src/main.js"></script>
 </body>
 </html>

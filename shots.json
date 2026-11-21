@@ -1,1 +1,1 @@
-[{"h":720,"name":"1-cover.jpg","query":"?shot=cover&photo=boulevard&caption=Sunset%20Heist&layout=magazine&grade=sunset","w":1280},{"h":720,"name":"2-editor.jpg","query":"?shot=editor&photo=boulevard&caption=Boulevard%20Queen","w":1280},{"h":1024,"name":"3-cover.jpg","query":"?shot=cover&photo=pier&caption=Neon%20Nights&layout=diagonal&grade=neon","w":1024},{"h":1280,"name":"4-cover.jpg","query":"?shot=cover&photo=boulevard&caption=Dawn%20Patrol&layout=strips&grade=dawn","w":1024}]
+{"shots":["1-cover.jpg","2-editor.jpg","3-cover.jpg","4-cover-wide.jpg"]}
